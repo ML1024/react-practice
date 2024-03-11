@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.scss'
 import avatar from './images/bozai.png'
-
+import _ from 'lodash' //这里的 _ 是使用各种方法的前缀
 /**
  * 评论列表的渲染和操作
  *
@@ -24,7 +24,7 @@ const list = [
     content: '哎哟，不错哦',
     // 评论时间
     ctime: '10-18 08:15',
-    like: 88,
+    like: 126,
   },
   {
     rpid: 2,
@@ -75,11 +75,35 @@ const tabs = [
 ]
 
 
-
 const App = () => {
 
-  //渲染评论列表
-  const [commentList, setCommentList] = useState(list)
+  //1.渲染评论列表
+  const [commentList, setCommentList] = useState(_.orderBy(list, 'like', 'desc'))
+
+  //2.删除功能
+  const handleDet = (id) => {
+    console.log(id)
+    //对commandList做过滤处理
+    setCommentList(commentList.filter(item => item.rpid !== id))
+  }
+
+  //3.tab切换功能
+  //    1)点击谁就把谁的type记录下俩
+  //    2)通过记录的type和每一项遍历时的type做匹配，控制激活类名的显示
+  const [type, setType] = useState('hot')
+  const handleTypeChange = (type) => {
+    console.log(type)
+    setType(type)
+    //基于列表的排序
+    if (type === 'hot') {
+      //根据点赞数排序（使用 lodash 工具进行排序）
+      setCommentList(_.orderBy(commentList, 'like', 'desc'))
+    } else {
+      //根据创建时间排序
+      setCommentList(_.orderBy(commentList, 'ctime', 'desc'))
+    }
+  }
+
 
   return (
     <div className="app">
@@ -93,8 +117,13 @@ const App = () => {
           </li>
           <li className="nav-sort">
             {/* 高亮类名： active */}
-            <span className='nav-item'>最新</span>
-            <span className='nav-item'>最热</span>
+            {tabs.map(item =>
+              <span
+                key={item.type}
+                onClick={() => handleTypeChange(item.type)}
+                className={`nav-item ${type === item.type && 'active'}`}>
+                {item.text}
+              </span>)}
           </li>
         </ul>
       </div>
@@ -122,42 +151,43 @@ const App = () => {
         </div>
         {/* 评论列表 */}
         <div className="reply-list">
-        {/* 评论项 */}
-        {commentList.map(item => (
-          <div className="reply-item">
-            {/* 头像 */}
-            <div className="root-reply-avatar">
-              <div className="bili-avatar">
-                <img
-                  className="bili-avatar-img"
-                  alt=""
-                />
+          {/* 评论项 */}
+          {commentList.map(item => (
+            <div key={item.rpid} className="reply-item">
+              {/* 头像 */}
+              <div className="root-reply-avatar">
+                <div className="bili-avatar">
+                  <img
+                    className="bili-avatar-img"
+                    alt=""
+                    src={item.user.avatar}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="content-wrap">
-              {/* 用户名 */}
-              <div className="user-info">
-                <div className="user-name">jack</div>
-              </div>
-              {/* 评论内容 */}
-              <div className="root-reply">
-                <span className="reply-content">这是一条评论回复</span>
-                <div className="reply-info">
-                  {/* 评论时间 */}
-                  <span className="reply-time">{'2023-11-11'}</span>
-                  {/* 评论数量 */}
-                  <span className="reply-time">点赞数:{100}</span>
-                  <span className="delete-btn">
-                    删除
-                  </span>
-
+              <div className="content-wrap">
+                {/* 用户名 */}
+                <div className="user-info">
+                  <div className="user-name">{item.user.uname}</div>
+                </div>
+                {/* 评论内容 */}
+                <div className="root-reply">
+                  <span className="reply-content">{item.content}</span>
+                  <div className="reply-info">
+                    {/* 评论时间 */}
+                    <span className="reply-time">{item.ctime}</span>
+                    {/* 评论数量 */}
+                    <span className="reply-time">点赞数:{item.like}</span>
+                    {user.uid === item.user.uid &&
+                      <span className="delete-btn" onClick={() => handleDet(item.rpid)}>
+                        删除
+                      </span>}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-        ))}
+          ))}
 
 
         </div>
