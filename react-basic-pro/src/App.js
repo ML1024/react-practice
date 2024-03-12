@@ -1,13 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import './App.scss'
 import avatar from './images/bozai.png'
 import _ from 'lodash' //这里的 _ 是使用各种方法的前缀
-/**
- * 评论列表的渲染和操作
- *
- * 1. 根据状态渲染评论列表
- * 2. 删除评论
- */
+import {v4 as uuidV4} from 'uuid'
+import dayjs from 'dayjs'
+
 
 // 评论列表数据
 const list = [
@@ -104,6 +101,31 @@ const App = () => {
     }
   }
 
+  //4.发表评论
+  const [content, setContent] = useState('')
+  const inputRef = useRef(null)
+  const handlePublish = () =>{
+    setCommentList([
+      ...commentList, 
+      {
+        rpid: uuidV4(),//随机id
+        user: {
+          uid: '30009257',
+          avatar,
+          uname: '黑马前端',
+        },
+        content: content,
+        ctime: dayjs(new Date()).format('MM-DD hh:mm'), //格式化 月-日 时:分
+        like: 66,
+      }
+    ])
+
+    //清空输入框的内容
+    setContent('')
+    //重新聚焦
+    inputRef.current.focus() //inputRef.current 指向真实的DOM元素，这里是<textarea>
+  }
+
 
   return (
     <div className="app">
@@ -142,10 +164,13 @@ const App = () => {
             <textarea
               className="reply-box-textarea"
               placeholder="发一条友善的评论"
+              ref={inputRef}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
             />
             {/* 发布按钮 */}
             <div className="reply-box-send">
-              <div className="send-text">发布</div>
+              <div className="send-text" onClick={handlePublish}>发布</div>
             </div>
           </div>
         </div>
